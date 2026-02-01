@@ -1,16 +1,22 @@
 # nginx-image-host
 
+[![nginx](https://img.shields.io/badge/nginx-OpenResty%2FLua-green)](https://openresty.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-Ready-blue)](https://www.docker.com/)
+
 Self-hosted image hosting with nginx + OpenResty/Lua.
 
-## Features
+## ✨ Features
 
-- Auto file type detection | Image optimization (ImageMagick)
-- Hotlink protection | Rate limiting (10/min)
-- Secure permissions (600) | HTTPS | Configurable paths
+- 🖼️ Auto file type detection (MIME-based)
+- ⚡ Image optimization (ImageMagick)
+- 🔒 Hotlink protection
+- 🛡️ Rate limiting (10 req/min)
+- 🔐 Secure file permissions (600)
+- 🔑 HTTPS ready
+- ⚙️ Configurable paths
 
----
-
-## Choose Your Setup
+## 🚀 Quick Start
 
 ### Option 1: Add to Existing Nginx
 
@@ -57,21 +63,7 @@ rm /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 ```
 
----
-
-## Configuration
-
-| Placeholder | Default |
-|-------------|---------|
-| `__IMAGE_PATH__` | `/images/` |
-| `__UPLOAD_PATH__` | `/upload` |
-| `__STORAGE_PATH__` | `/var/www/images/` |
-
-## SSL Certificate
-
-See [ACME.md](ACME.md) for details (standalone, webroot, or DNS mode).
-
-## Docker
+## 🐳 Docker
 
 ```bash
 IMAGE_PATH=/i/ UPLOAD_PATH=/api/upload STORAGE_PATH=/data/img docker-compose up -d
@@ -86,7 +78,30 @@ IMAGE_PATH=/i/ UPLOAD_PATH=/api/upload STORAGE_PATH=/data/img docker-compose up 
 | `UPLOAD_USER` | upload |
 | `UPLOAD_PASS` | upload |
 
-## Backup/Restore
+## ⚙️ Configuration
+
+| Placeholder | Default |
+|-------------|---------|
+| `__IMAGE_PATH__` | `/images/` |
+| `__UPLOAD_PATH__` | `/upload` |
+| `__STORAGE_PATH__` | `/var/www/images/` |
+
+## 🔒 Security
+
+**Built-in Protections:**
+- ✅ Rate limiting (10 req/min per IP)
+- ✅ Hotlink protection (referer checking)
+- ✅ Basic auth for uploads
+- ✅ Secure file permissions (600)
+- ✅ File type validation (MIME detection)
+
+**For Production:**
+1. Use strong passwords for upload auth
+2. Enable HTTPS (see [ACME.md](ACME.md))
+3. Consider IP whitelist for uploads
+4. Add fail2ban for abusive IPs
+
+## 💾 Backup/Restore
 
 **Local:**
 ```bash
@@ -115,5 +130,12 @@ find "$BACKUP_DIR" -name "images-*.tar.gz" -mtime +7 -delete
 # /etc/cron.d/img-backup
 0 2 * * * root /usr/local/bin/pull-images.sh
 ```
+
+## 📚 Documentation
+
+- [INSTALL.md](INSTALL.md) - Installation guide for existing nginx
+- [ACME.md](ACME.md) - SSL certificate setup with acme.sh
+
+## 📄 License
 
 MIT License
