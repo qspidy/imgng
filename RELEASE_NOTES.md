@@ -38,6 +38,13 @@ This is the **initial public release** of nginx-image-host! 🎉
 
 ### 📦 Installation
 
+#### Clone Repository
+
+```bash
+git clone https://github.com/qspidy/imgng.git
+cd imgng
+```
+
 #### Option 1: Add to Existing Nginx
 
 ```bash

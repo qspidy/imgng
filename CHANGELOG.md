@@ -45,5 +45,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Linux support (Debian/Ubuntu based systems)
 - Docker support with Alpine Linux base image
 
-[Unreleased]: https://github.com/qspidy/imgng_pub/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/qspidy/imgng_pub/releases/tag/v1.0.0
+[Unreleased]: https://github.com/qspidy/imgng/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/qspidy/imgng/releases/tag/v1.0.0

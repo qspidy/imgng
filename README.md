@@ -3,38 +3,46 @@
 [![nginx](https://img.shields.io/badge/nginx-OpenResty%2FLua-green)](https://openresty.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-Ready-blue)](https://www.docker.com/)
+[![Security](https://img.shields.io/badge/security-hotlink--protection-green)]()
+[![Rate Limiting](https://img.shields.io/badge/rate--limit-10%2Fmin-orange)]()
 
-Self-hosted image hosting with nginx + OpenResty/Lua.
+A self-hosted image hosting solution built on nginx with OpenResty/Lua extensions. Lightweight, secure, and production-ready alternative to cloud image hosting services.
 
 ## ✨ Features
 
-- 🖼️ Auto file type detection (MIME-based)
-- ⚡ Image optimization (ImageMagick)
-- 🔒 Hotlink protection
-- 🛡️ Rate limiting (10 req/min)
-- 🔐 Secure file permissions (600)
-- 🔑 HTTPS ready
-- ⚙️ Configurable paths
+- 🖼️ Auto file type detection (MIME-based validation)
+- ⚡ Image optimization using ImageMagick
+- 🔒 Hotlink protection via referer checking
+- 🛡️ Rate limiting (10 requests/min per IP)
+- 🔐 Basic authentication for upload endpoint
+- 🔑 HTTPS ready with SSL/TLS support
+- ⚙️ Configurable paths and environment variables
+- 🐳 Docker support with Alpine Linux
 
 ## 🚀 Quick Start
 
 ### Option 1: Add to Existing Nginx
 
-You already have nginx running with SSL configured. See [INSTALL.md](INSTALL.md) for copy-paste snippets.
+You already have nginx running with SSL configured. Copy-paste the snippets from [INSTALL.md](INSTALL.md) into your nginx configuration.
 
 ```bash
-# Quick start
+# Install dependencies
 apt-get install nginx-extras imagemagick
+
+# Create directories
 mkdir -p /var/www/images /tmp/nginx_upload
 chown -R www-data:www-data /var/www/images /tmp/nginx_upload
 chmod 755 /var/www/images /tmp/nginx_upload
+
+# Setup authentication
 echo "upload:$(openssl passwd -apr1 upload)" | tee /etc/nginx/.htpasswd
+
 # Then add snippets from INSTALL.md to your config
 ```
 
 ### Option 2: Fresh OS Installation
 
-New server, install everything from scratch.
+New server? Install everything from scratch.
 
 ```bash
 # 1. Install dependencies
@@ -63,53 +71,111 @@ rm /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 ```
 
-## 🐳 Docker
+## 🐳 Docker Deployment
+
+### Quick Start with Docker
 
 ```bash
+# Using Docker Compose (Recommended)
 IMAGE_PATH=/i/ UPLOAD_PATH=/api/upload STORAGE_PATH=/data/img docker-compose up -d
+
+# Using Docker directly
+docker build -t nginx-image-host .
+docker run -d -p 80:80 -p 443:443 --name nginx-image-host nginx-image-host
 ```
 
-| Env Var | Default |
-|---------|---------|
-| `DOMAIN` | localhost |
-| `IMAGE_PATH` | /images/ |
-| `UPLOAD_PATH` | /upload |
-| `STORAGE_PATH` | /var/www/images |
-| `UPLOAD_USER` | upload |
-| `UPLOAD_PASS` | upload |
+### Environment Variables
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `DOMAIN` | localhost | Server domain name |
+| `IMAGE_PATH` | /images/ | URL path for serving images |
+| `UPLOAD_PATH` | /upload | URL path for upload endpoint |
+| `STORAGE_PATH` | /var/www/images | Local directory for storing images |
+| `UPLOAD_USER` | upload | Username for upload authentication |
+| `UPLOAD_PASS` | upload | Password for upload authentication |
+
+> **Note**: For production, always use strong passwords and enable HTTPS/TLS.
 
 ## ⚙️ Configuration
 
-| Placeholder | Default |
-|-------------|---------|
-| `__IMAGE_PATH__` | `/images/` |
-| `__UPLOAD_PATH__` | `/upload` |
-| `__STORAGE_PATH__` | `/var/www/images/` |
+### Config Placeholders
+
+Edit `img-host-full.conf` and replace these placeholders:
+
+| Placeholder | Default | Description |
+|-------------|---------|-------------|
+| `__IMAGE_PATH__` | `/images/` | URL path for serving images |
+| `__UPLOAD_PATH__` | `/upload` | URL path for upload endpoint |
+| `__STORAGE_PATH__` | `/var/www/images/` | Local storage directory |
+
+## 📖 API Reference
+
+### `POST /upload`
+
+Upload an image file to the server.
+
+**Authentication:** Basic Auth (username: `upload`, password: configured)
+
+**Request:**
+- `file`: Image file (multipart/form-data)
+
+**Response:**
+- `200 OK`: Image uploaded successfully
+- `401 Unauthorized`: Invalid or missing authentication
+- `413 Request Entity Too Large`: File exceeds size limit
+- `415 Unsupported Media Type`: Invalid file type
+
+**Example:**
+```bash
+curl -u upload:upload -F "file=@image.jpg" https://example.com/upload
+```
+
+### `GET /images/*`
+
+Serve uploaded images.
+
+**Response:**
+- `200 OK`: Image returned
+- `404 Not Found`: Image not found
+
+**Protection:**
+- Hotlink protection checks referer header
+- Rate limited to 10 requests/min per IP
 
 ## 🔒 Security
 
-**Built-in Protections:**
-- ✅ Rate limiting (10 req/min per IP)
-- ✅ Hotlink protection (referer checking)
-- ✅ Basic auth for uploads
-- ✅ Secure file permissions (600)
-- ✅ File type validation (MIME detection)
+This application includes comprehensive security measures for safe production deployment.
 
-**For Production:**
-1. Use strong passwords for upload auth
-2. Enable HTTPS (see [ACME.md](ACME.md))
-3. Consider IP whitelist for uploads
+**Implemented Security Measures:**
+- ✅ Rate limiting (10 requests/min per IP)
+- ✅ Hotlink protection (referer checking)
+- ✅ Basic authentication for uploads
+- ✅ Secure file permissions (600)
+- ✅ File type validation via MIME detection
+- ✅ Path sanitization (prevents directory traversal)
+
+**For Production Deployment:**
+1. Use strong passwords for upload authentication
+2. Enable HTTPS/TLS (see [ACME.md](ACME.md))
+3. Consider IP whitelist for `/upload` endpoint
 4. Add fail2ban for abusive IPs
+5. Review nginx logs regularly
 
 ## 💾 Backup/Restore
 
-**Local:**
+### Local Backup
+
 ```bash
+# Backup
 tar -czf backup.tar.gz /var/www/images
+
+# Restore
 tar -xzf backup.tar.gz -C /
 ```
 
-**Remote (backup server pulls):**
+### Remote Backup (backup server pulls)
+
 ```bash
 # Backup
 ssh img-server "tar -czf - /var/www/images" > /var/backups/images-$(date +%Y%m%d).tar.gz
@@ -118,7 +184,8 @@ ssh img-server "tar -czf - /var/www/images" > /var/backups/images-$(date +%Y%m%d
 cat /var/backups/images-20250131.tar.gz | ssh img-server "tar -xzf - -C /"
 ```
 
-**Automated cron on backup server (daily, keep 7 days):**
+### Automated Backup (cron)
+
 ```bash
 # /usr/local/bin/pull-images.sh
 BACKUP_DIR="/var/backups"
@@ -135,7 +202,44 @@ find "$BACKUP_DIR" -name "images-*.tar.gz" -mtime +7 -delete
 
 - [INSTALL.md](INSTALL.md) - Installation guide for existing nginx
 - [ACME.md](ACME.md) - SSL certificate setup with acme.sh
+- [CHANGELOG.md](CHANGELOG.md) - Version history and changes
+- [RELEASE_NOTES.md](RELEASE_NOTES.md) - Release information
+
+## 🛠️ Development
+
+### Test Configuration
+
+```bash
+# Test nginx configuration
+nginx -t
+
+# Reload nginx without downtime
+nginx -s reload
+```
+
+### View Logs
+
+```bash
+# View nginx error log
+tail -f /var/log/nginx/error.log
+
+# View access log
+tail -f /var/log/nginx/access.log
+```
 
 ## 📄 License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [OpenResty](https://openresty.org/) - Enhanced nginx with Lua
+- [ImageMagick](https://imagemagick.org/) - Image processing
+- [nginx](https://nginx.org/) - Web server
+- [acme.sh](https://github.com/acmesh-official/acme.sh) - SSL certificate automation
+
+## 📞 Support
+
+- 📖 Check the [documentation](#-documentation) for detailed guides
+- 🐛 [Open an issue](https://github.com/qspidy/imgng/issues) for bug reports
+- 💬 Start a [discussion](https://github.com/qspidy/imgng/discussions) for questions
