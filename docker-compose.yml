@@ -1,0 +1,17 @@
+services:
+  img-host:
+    build: .
+    ports:
+      - "8080:80"
+      - "8443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - IMAGE_PATH=${IMAGE_PATH:-/images/}
+      - UPLOAD_PATH=${UPLOAD_PATH:-/upload}
+      - STORAGE_PATH=${STORAGE_PATH:-/var/www/images}
+      - UPLOAD_USER=${UPLOAD_USER:-upload}
+      - UPLOAD_PASS=${UPLOAD_PASS:-upload}
+    volumes:
+      - ./images:${STORAGE_PATH:-/var/www/images}
+      - ./certs:/etc/ssl:ro
+    restart: unless-stopped
