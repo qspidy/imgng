@@ -198,6 +198,10 @@ find "$BACKUP_DIR" -name "images-*.tar.gz" -mtime +7 -delete
 0 2 * * * root /usr/local/bin/pull-images.sh
 ```
 
+## 🗺️ Roadmap
+
+- [ ] Image statistics (view count, bandwidth tracking) - displayed via static page
+
 ## 📚 Documentation
 
 - [INSTALL.md](INSTALL.md) - Installation guide for existing nginx
