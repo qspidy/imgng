@@ -12,7 +12,7 @@ This Worker preserves the old upload flow:
 
 ```bash
 imgul() {
-  curl -s -u user:password --data-binary @"$1" https://api.example.com/upload
+  curl -s -u user:password --data-binary @"$1" https://your-worker.your-subdomain.workers.dev
 }
 ```
 
@@ -31,16 +31,14 @@ The repo now uses plain JavaScript for the deployable Worker entrypoint, so it i
 ## One-Time Cloudflare Setup
 
 1. Create an R2 bucket, for example `images`, unless Cloudflare provisions one for you during template deployment.
-2. Add a custom domain to that bucket, for example `img.example.com`, if you want public image URLs on your own domain.
-3. Create a Worker route for `api.example.com/upload`, or use the automatic `workers.dev` hostname first.
-4. Make sure any custom hostname you use is proxied by Cloudflare.
+2. Deploy to the default `workers.dev` hostname first so the template works without any per-user route setup.
+3. Add a custom domain to that bucket, for example `img.example.com`, if you want public image URLs on your own domain.
+4. If you later add a custom Worker route or hostname, make sure that hostname is proxied by Cloudflare.
 
 ## Local Config
 
 Edit [`wrangler.jsonc`](./wrangler.jsonc):
 
-- Change `routes[0].pattern` if you want a different upload path.
-- Change `routes[0].zone_name` if your zone differs.
 - Change `r2_buckets[0].bucket_name` to your real bucket name.
 - Change `vars.PUBLIC_BASE_URL` to your public R2 custom-domain URL.
 - Change `vars.BASIC_USER` if you do not want `user`.
@@ -73,14 +71,14 @@ If you want Cloudflare to deploy from Git automatically:
 6. Use the install command `npm install`.
 7. Use the deploy command `npm run deploy`.
 8. Set the `BASIC_PASS` secret if Cloudflare did not already prompt for it during deployment.
-9. Review the generated configuration and make sure the route, zone, bucket name, and public base URL in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup.
+9. Review the generated configuration and make sure the bucket name and public base URL in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup.
 
-Cloudflare requires the Worker name in the dashboard to match the `name` field in [`wrangler.jsonc`](./wrangler.jsonc).
+Cloudflare requires the Worker name in the dashboard to match the `name` field in [`wrangler.jsonc`](./wrangler.jsonc). Custom routes are optional and can be added after the first successful deploy.
 
 ## Test
 
 ```bash
-curl -s -u user:password --data-binary @photo.jpg https://api.example.com/upload
+curl -s -u user:password --data-binary @photo.jpg https://your-worker.your-subdomain.workers.dev
 ```
 
 The response will be a plain text URL like:

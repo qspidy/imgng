@@ -6,13 +6,7 @@
   "secrets": {
     "required": ["BASIC_PASS"]
   },
-  "workers_dev": false,
-  "routes": [
-    {
-      "pattern": "api.example.com/upload",
-      "zone_name": "example.com"
-    }
-  ],
+  "workers_dev": true,
   "r2_buckets": [
     {
       "binding": "IMAGES",
