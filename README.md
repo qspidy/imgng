@@ -6,7 +6,7 @@
 [![Security](https://img.shields.io/badge/security-hotlink--protection-green)]()
 [![Rate Limiting](https://img.shields.io/badge/rate--limit-10%2Fmin-orange)]()
 
-A self-hosted image hosting solution built on nginx with OpenResty/Lua extensions. Lightweight, secure, and production-ready alternative to cloud image hosting services.
+A self-hosted image hosting solution built around nginx/OpenResty, with an optional Cloudflare Worker upload endpoint backed by R2. It can run fully on your own server or use Cloudflare at the upload edge while still serving public image URLs from your own domain.
 
 ## ✨ Features
 
@@ -18,6 +18,17 @@ A self-hosted image hosting solution built on nginx with OpenResty/Lua extension
 - 🔑 HTTPS ready with SSL/TLS support
 - ⚙️ Configurable paths and environment variables
 - 🐳 Docker support with Alpine Linux
+- ☁️ Optional Cloudflare Worker + R2 upload flow
+
+## 🧱 Repository Layout
+
+| Path | Purpose |
+|------|---------|
+| `img-host-full.conf` | Full nginx/OpenResty site config |
+| `Dockerfile` / `docker-compose.yml` | Containerized deployment |
+| `worker/` | Cloudflare Worker upload service and Wrangler config |
+| `worker/src/index.js` | Worker source used for Wrangler deploys and Cloudflare dashboard/manual setup |
+| `worker/README.md` | Worker-specific setup and deploy guide |
 
 ## 🚀 Quick Start
 
@@ -96,6 +107,31 @@ docker run -d -p 80:80 -p 443:443 --name nginx-image-host nginx-image-host
 | `UPLOAD_PASS` | upload | Password for upload authentication |
 
 > **Note**: For production, always use strong passwords and enable HTTPS/TLS.
+
+## ☁️ Cloudflare Worker Deployment
+
+The repository also includes a Worker-based upload endpoint under [`worker/`](worker/). This is useful if you want to keep the old "POST raw bytes with Basic auth" upload flow while storing files in Cloudflare R2 instead of writing uploads directly to the nginx host.
+
+The Worker:
+
+- accepts `POST` requests with raw image bytes
+- validates HTTP Basic auth
+- detects image type from magic bytes
+- stores the object in an R2 bucket
+- returns the final public image URL as plain text
+
+Supported formats currently include `jpg`, `png`, `gif`, `webp`, and `avif`.
+
+Quick start:
+
+```bash
+cd worker
+npm install
+npx wrangler secret put BASIC_PASS
+npx wrangler deploy
+```
+
+You will also need to update [`worker/wrangler.jsonc`](worker/wrangler.jsonc) for your route, zone, bucket name, and public base URL. Full setup details are in [`worker/README.md`](worker/README.md).
 
 ## ⚙️ Configuration
 
@@ -206,6 +242,7 @@ find "$BACKUP_DIR" -name "images-*.tar.gz" -mtime +7 -delete
 
 - [INSTALL.md](INSTALL.md) - Installation guide for existing nginx
 - [ACME.md](ACME.md) - SSL certificate setup with acme.sh
+- [worker/README.md](worker/README.md) - Cloudflare Worker and R2 upload setup
 - [CHANGELOG.md](CHANGELOG.md) - Version history and changes
 - [RELEASE_NOTES.md](RELEASE_NOTES.md) - Release information
 

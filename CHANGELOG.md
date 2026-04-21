@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- (Future releases will be documented here)
+- Cloudflare Worker upload service under `worker/`
+- Wrangler-based deployment config for Cloudflare Git-connected builds
+- Worker-specific setup and deployment documentation
+
+### Changed
+- Top-level README now documents the optional Cloudflare Worker + R2 architecture
+- Worker examples and config placeholders were sanitized for public release
 
 ## [1.0.0] - 2025-01-31
 

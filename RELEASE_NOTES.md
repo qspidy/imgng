@@ -1,120 +1,44 @@
 ## What's New
 
-This is the **initial public release** of nginx-image-host! 🎉
+This release publishes the repo with both deployment paths documented clearly:
 
-### ✨ Features
+- a self-hosted nginx/OpenResty image host
+- an optional Cloudflare Worker upload endpoint backed by R2
 
-- **Self-Hosted Image Hosting**: Complete nginx-based image hosting solution
-- **OpenResty/Lua Integration**: Enhanced nginx with Lua scripting for advanced features
-- **Auto File Type Detection**: MIME-based validation ensures only images are uploaded
-- **Image Optimization**: Automatic optimization using ImageMagick
-- **Hotlink Protection**: Prevents unauthorized embedding of your images
-- **Rate Limiting**: 10 requests/min per IP to prevent abuse
-- **Basic Authentication**: Secure upload endpoint with username/password protection
-- **Docker Support**: Ready-to-use Docker and Docker Compose configurations
-- **HTTPS Ready**: Full SSL/TLS support with ACME integration
+### Highlights
 
-### 🔒 Security
+- **nginx/OpenResty image hosting** with upload protection and static delivery
+- **Cloudflare Worker upload flow** in `worker/` for Git-connected Cloudflare deploys
+- **R2-backed object storage** support for Worker-based uploads
+- **Sanitized public examples** in Worker docs and Wrangler config
+- **Updated top-level docs** so the repo layout and deployment choices are explicit
 
-- Rate limiting (10 requests/min per IP)
-- Hotlink protection (referer checking)
-- Basic authentication for uploads
-- Secure file permissions (600)
-- File type validation via MIME detection
-- Path sanitization (prevents directory traversal)
+### Cloudflare Worker Notes
 
-### 📚 Documentation
+The Worker setup is designed for repository-based deployment:
 
-- **README.md**: Comprehensive quick start and configuration guide
-- **INSTALL.md**: Installation guide for existing nginx setups
-- **ACME.md**: SSL certificate setup using acme.sh
+- root directory: `worker`
+- install command: `npm install`
+- deploy command: `npm run deploy`
+- entrypoint: `worker/src/index.js`
 
-### 🎨 Platform Support
+Before enabling deployment in Cloudflare, set:
 
-- ✅ **Linux** (Debian/Ubuntu based systems)
-- ✅ **Docker** (Alpine Linux base image)
+- the Worker name to match `wrangler.jsonc`
+- the route and zone for your real domain
+- the `BASIC_PASS` secret
+- the R2 bucket binding
+- the public image base URL
 
-> **Note**: This release is designed for Debian/Ubuntu based Linux distributions. Docker support allows deployment on any platform with Docker installed.
+### Documentation
 
-### 📦 Installation
+- `README.md` covers both nginx-hosted and Worker-based deployment paths
+- `worker/README.md` covers Cloudflare Worker and R2 setup
+- `INSTALL.md` remains the nginx integration guide
+- `ACME.md` remains the SSL setup guide
 
-#### Clone Repository
+### Known Gaps
 
-```bash
-git clone https://github.com/qspidy/imgng.git
-cd imgng
-```
-
-#### Option 1: Add to Existing Nginx
-
-```bash
-# Install dependencies
-apt-get install nginx-extras imagemagick
-
-# Create directories
-mkdir -p /var/www/images /tmp/nginx_upload
-chown -R www-data:www-data /var/www/images /tmp/nginx_upload
-chmod 755 /var/www/images /tmp/nginx_upload
-
-# Setup authentication
-echo "upload:$(openssl passwd -apr1 upload)" | tee /etc/nginx/.htpasswd
-
-# Add configuration snippets from INSTALL.md to your nginx config
-```
-
-#### Option 2: Fresh OS Installation
-
-```bash
-# Install dependencies
-apt-get update && apt-get install -y nginx-extras imagemagick
-
-# Use full config (includes SSL, HTTP redirect)
-cp img-host-full.conf /etc/nginx/sites-available/img-host
-ln -s /etc/nginx/sites-available/img-host /etc/nginx/sites-enabled/
-
-# Edit config: replace example.com, __IMAGE_PATH__, __UPLOAD_PATH__, __STORAGE_PATH__, SSL cert paths
-
-# Setup directories and auth
-mkdir -p /var/www/images /tmp/nginx_upload
-chown -R www-data:www-data /var/www/images /tmp/nginx_upload
-chmod 755 /var/www/images /tmp/nginx_upload
-echo "upload:$(openssl passwd -apr1 upload)" | tee /etc/nginx/.htpasswd
-
-# Get SSL cert (see ACME.md for details)
-acme.sh --issue -d example.com --standalone
-acme.sh --install-cert -d example.com --ecc \
-  --fullchain-file /etc/ssl/example.com.pem \
-  --key-file /etc/ssl/example.com.key
-
-# Enable and start
-rm /etc/nginx/sites-enabled/default
-nginx -t && systemctl restart nginx
-```
-
-#### Option 3: Docker
-
-```bash
-IMAGE_PATH=/i/ UPLOAD_PATH=/api/upload STORAGE_PATH=/data/img docker-compose up -d
-```
-
-| Env Var | Default |
-|---------|---------|
-| `DOMAIN` | localhost |
-| `IMAGE_PATH` | /images/ |
-| `UPLOAD_PATH` | /upload |
-| `STORAGE_PATH` | /var/www/images |
-| `UPLOAD_USER` | upload |
-| `UPLOAD_PASS` | upload |
-
-### 📋 Known Issues
-
-- Rate limiting is per-IP; may affect users behind NAT
-- Basic authentication uses htpasswd file (no database integration)
-- No built-in image management UI (use direct file access)
-
-### 🙏 Acknowledgments
-
-- [OpenResty](https://openresty.org/) - Enhanced nginx with Lua
-- [ImageMagick](https://imagemagick.org/) - Image processing
-- [nginx](https://nginx.org/) - Web server
-- [acme.sh](https://github.com/acmesh-official/acme.sh) - SSL certificate automation
+- no built-in image management UI
+- no automated sync for secrets or dashboard-side Cloudflare bindings
+- nginx and Worker deployments are documented separately rather than unified behind one provisioning flow

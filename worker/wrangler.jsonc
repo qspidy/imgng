@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "imgul",
+  "main": "src/index.js",
+  "compatibility_date": "2026-04-21",
+  "secrets": {
+    "required": ["BASIC_PASS"]
+  },
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "api.example.com/upload",
+      "zone_name": "example.com"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "images"
+    }
+  ],
+  "vars": {
+    "BASIC_USER": "user",
+    "PUBLIC_BASE_URL": "https://img.example.com",
+    "PUBLIC_PATH_PREFIX": "images"
+  }
+}

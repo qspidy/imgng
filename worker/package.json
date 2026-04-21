@@ -1,0 +1,32 @@
+{
+  "name": "imgul",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "cloudflare": {
+    "bindings": {
+      "BASIC_PASS": {
+        "description": "Set a password for HTTP Basic auth on the upload endpoint."
+      },
+      "BASIC_USER": {
+        "description": "Optional username for HTTP Basic auth. Default is `user`."
+      },
+      "IMAGES": {
+        "description": "R2 bucket used to store uploaded images. Cloudflare can provision this during template deployment."
+      },
+      "PUBLIC_BASE_URL": {
+        "description": "Public base URL used in the returned image URL, for example `https://img.example.com` or your R2 public domain."
+      },
+      "PUBLIC_PATH_PREFIX": {
+        "description": "Object key prefix included in returned URLs. Default is `images`."
+      }
+    }
+  },
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.12.0"
+  }
+}
