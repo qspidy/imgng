@@ -12,7 +12,7 @@ This Worker preserves the old upload flow:
 
 ```bash
 imgul() {
-  curl -s -u user:password --data-binary @"$1" https://your-worker.your-subdomain.workers.dev
+  curl -s -u user:password --data-binary @"$1" https://your-worker.your-subdomain.workers.dev/upload
 }
 ```
 
@@ -39,6 +39,7 @@ The repo now uses plain JavaScript for the deployable Worker entrypoint, so it i
 
 Edit [`wrangler.jsonc`](./wrangler.jsonc):
 
+- Change `vars.API_PATH_PREFIX` if you want the upload endpoint on another path such as `api/upload`. Use an empty value to serve uploads from `/`.
 - Change `r2_buckets[0].bucket_name` to your real bucket name.
 - Change `vars.PUBLIC_BASE_URL` to your public R2 custom-domain URL.
 - Change `vars.BASIC_USER` if you do not want `user`.
@@ -71,14 +72,14 @@ If you want Cloudflare to deploy from Git automatically:
 6. Use the install command `npm install`.
 7. Use the deploy command `npm run deploy`.
 8. Set the `BASIC_PASS` secret if Cloudflare did not already prompt for it during deployment.
-9. Review the generated configuration and make sure the bucket name and public base URL in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup.
+9. Review the generated configuration and make sure the upload path, bucket name, and public base URL in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup.
 
 Cloudflare requires the Worker name in the dashboard to match the `name` field in [`wrangler.jsonc`](./wrangler.jsonc). Custom routes are optional and can be added after the first successful deploy.
 
 ## Test
 
 ```bash
-curl -s -u user:password --data-binary @photo.jpg https://your-worker.your-subdomain.workers.dev
+curl -s -u user:password --data-binary @photo.jpg https://your-worker.your-subdomain.workers.dev/upload
 ```
 
 The response will be a plain text URL like:

@@ -11,6 +11,9 @@
       "BASIC_USER": {
         "description": "Optional username for HTTP Basic auth. Default is `user`."
       },
+      "API_PATH_PREFIX": {
+        "description": "Path served by the upload API, for example `upload` or `api/upload`. Use an empty value to serve from `/`."
+      },
       "IMAGES": {
         "description": "R2 bucket used to store uploaded images. Cloudflare can provision this during template deployment."
       },

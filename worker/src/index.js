@@ -19,6 +19,10 @@ function unauthorized() {
   });
 }
 
+function notFound() {
+  return response("not found\n", 404);
+}
+
 function parseBasicAuth(header) {
   if (!header || !header.startsWith("Basic ")) {
     return null;
@@ -120,6 +124,11 @@ function normalizePathPrefix(prefix) {
   return prefix.replace(/^\/+|\/+$/g, "");
 }
 
+function normalizeRequestPath(path) {
+  const normalized = normalizePathPrefix(path);
+  return normalized ? `/${normalized}` : "/";
+}
+
 function generateRequestId() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -127,6 +136,12 @@ function generateRequestId() {
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    const requestPath = normalizeRequestPath(env.API_PATH_PREFIX);
+    if (url.pathname !== requestPath) {
+      return notFound();
+    }
+
     if (request.method !== "POST") {
       return response("method not allowed\n", 405);
     }
