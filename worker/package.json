@@ -18,7 +18,7 @@
         "description": "R2 bucket used to store uploaded images. Cloudflare can provision this during template deployment."
       },
       "PUBLIC_BASE_URL": {
-        "description": "Public base URL used in the returned image URL, for example `https://img.example.com` or your R2 public domain."
+        "description": "Optional public base URL used in returned image URLs. Leave empty to use the Worker origin by default, or set a custom domain later."
       },
       "PUBLIC_PATH_PREFIX": {
         "description": "Object key prefix included in returned URLs. Default is `images`."

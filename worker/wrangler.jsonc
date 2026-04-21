@@ -16,7 +16,7 @@
   "vars": {
     "API_PATH_PREFIX": "upload",
     "BASIC_USER": "user",
-    "PUBLIC_BASE_URL": "https://img.example.com",
+    "PUBLIC_BASE_URL": "",
     "PUBLIC_PATH_PREFIX": "images"
   }
 }

@@ -16,7 +16,7 @@ imgul() {
 }
 ```
 
-It accepts raw image bytes over `POST`, validates HTTP Basic auth, detects the image type from magic bytes, stores the file in Cloudflare R2, and returns the public image URL.
+It accepts raw image bytes over `POST`, validates HTTP Basic auth, detects the image type from magic bytes, stores the file in Cloudflare R2, serves uploaded files back from the same Worker, and returns the public image URL.
 
 The repo now uses plain JavaScript for the deployable Worker entrypoint, so it is suitable for Cloudflare Git-connected builds without a TypeScript step.
 
@@ -32,8 +32,8 @@ The repo now uses plain JavaScript for the deployable Worker entrypoint, so it i
 
 1. Create an R2 bucket, for example `images`, unless Cloudflare provisions one for you during template deployment.
 2. Deploy to the default `workers.dev` hostname first so the template works without any per-user route setup.
-3. Add a custom domain to that bucket, for example `img.example.com`, if you want public image URLs on your own domain.
-4. If you later add a custom Worker route or hostname, make sure that hostname is proxied by Cloudflare.
+3. Leave `PUBLIC_BASE_URL` empty if you want returned URLs to use the Worker origin by default.
+4. Add a custom domain later if you want public image URLs on your own domain.
 
 ## Local Config
 
@@ -41,7 +41,7 @@ Edit [`wrangler.jsonc`](./wrangler.jsonc):
 
 - Change `vars.API_PATH_PREFIX` if you want the upload endpoint on another path such as `api/upload`. Use an empty value to serve uploads from `/`.
 - Change `r2_buckets[0].bucket_name` to your real bucket name.
-- Change `vars.PUBLIC_BASE_URL` to your public R2 custom-domain URL.
+- Leave `vars.PUBLIC_BASE_URL` empty to use the Worker origin, or set it later to a custom public image domain.
 - Change `vars.BASIC_USER` if you do not want `user`.
 
 Set the password as a secret:
@@ -72,7 +72,7 @@ If you want Cloudflare to deploy from Git automatically:
 6. Use the install command `npm install`.
 7. Use the deploy command `npm run deploy`.
 8. Set the `BASIC_PASS` secret if Cloudflare did not already prompt for it during deployment.
-9. Review the generated configuration and make sure the upload path, bucket name, and public base URL in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup.
+9. Review the generated configuration and make sure the upload path and bucket name in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup. Set `PUBLIC_BASE_URL` later if you want a separate image domain.
 
 Cloudflare requires the Worker name in the dashboard to match the `name` field in [`wrangler.jsonc`](./wrangler.jsonc). Custom routes are optional and can be added after the first successful deploy.
 
@@ -85,15 +85,15 @@ curl -s -u user:password --data-binary @photo.jpg https://your-worker.your-subdo
 The response will be a plain text URL like:
 
 ```text
-https://img.example.com/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
+https://your-worker.your-subdomain.workers.dev/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
 ```
 
-The `images` segment comes from `PUBLIC_PATH_PREFIX` in [`wrangler.jsonc`](./wrangler.jsonc). The Worker stores objects in R2 under that prefix so the public custom-domain URL works directly.
+The `images` segment comes from `PUBLIC_PATH_PREFIX` in [`wrangler.jsonc`](./wrangler.jsonc). By default the Worker serves those objects back from the same origin. If you later set `PUBLIC_BASE_URL`, returned URLs will use that custom base instead.
 
 ## Optional Delivery Optimization
 
 If you want Cloudflare to optimize on delivery, use a transformed URL when embedding:
 
 ```text
-https://www.example.com/cdn-cgi/image/format=auto,quality=85,width=1600/https://img.example.com/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
+https://www.example.com/cdn-cgi/image/format=auto,quality=85,width=1600/https://your-worker.your-subdomain.workers.dev/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
 ```

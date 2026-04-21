@@ -129,6 +129,27 @@ function normalizeRequestPath(path) {
   return normalized ? `/${normalized}` : "/";
 }
 
+function resolvePublicBaseUrl(requestUrl, env) {
+  if (env.PUBLIC_BASE_URL) {
+    return normalizeBaseUrl(env.PUBLIC_BASE_URL);
+  }
+
+  return normalizeBaseUrl(requestUrl.origin);
+}
+
+function getPublicObjectKey(pathname, publicPathPrefix) {
+  if (!publicPathPrefix) {
+    return pathname.replace(/^\/+/, "");
+  }
+
+  const prefixPath = `/${publicPathPrefix}/`;
+  if (!pathname.startsWith(prefixPath)) {
+    return null;
+  }
+
+  return pathname.slice(prefixPath.length);
+}
+
 function generateRequestId() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -138,39 +159,63 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const requestPath = normalizeRequestPath(env.API_PATH_PREFIX);
-    if (url.pathname !== requestPath) {
-      return notFound();
+    const publicPathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX);
+
+    if (url.pathname === requestPath) {
+      if (request.method !== "POST") {
+        return response("method not allowed\n", 405);
+      }
+
+      const auth = parseBasicAuth(request.headers.get("Authorization"));
+      if (!auth || auth.user !== env.BASIC_USER || auth.pass !== env.BASIC_PASS) {
+        return unauthorized();
+      }
+
+      const body = await request.arrayBuffer();
+      if (body.byteLength === 0) {
+        return response("empty body\n", 400);
+      }
+
+      const fileInfo = sniffImageType(new Uint8Array(body));
+      if (!fileInfo) {
+        return response("unsupported file type\n", 400);
+      }
+
+      const fileName = `${generateRequestId()}.${fileInfo.ext}`;
+      const key = publicPathPrefix ? `${publicPathPrefix}/${fileName}` : fileName;
+
+      await env.IMAGES.put(key, body, {
+        httpMetadata: {
+          contentType: fileInfo.contentType,
+        },
+      });
+
+      return response(`${resolvePublicBaseUrl(url, env)}/${key}\n`);
     }
 
-    if (request.method !== "POST") {
-      return response("method not allowed\n", 405);
+    const objectKey = getPublicObjectKey(url.pathname, publicPathPrefix);
+    if (objectKey) {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return response("method not allowed\n", 405);
+      }
+
+      const object = await env.IMAGES.get(objectKey);
+      if (!object) {
+        return notFound();
+      }
+
+      const headers = new Headers();
+      object.writeHttpMetadata(headers);
+      headers.set("etag", object.httpEtag);
+      headers.set("Cache-Control", "public, max-age=31536000, immutable");
+
+      if (request.method === "HEAD") {
+        return new Response(null, { headers });
+      }
+
+      return new Response(object.body, { headers });
     }
 
-    const auth = parseBasicAuth(request.headers.get("Authorization"));
-    if (!auth || auth.user !== env.BASIC_USER || auth.pass !== env.BASIC_PASS) {
-      return unauthorized();
-    }
-
-    const body = await request.arrayBuffer();
-    if (body.byteLength === 0) {
-      return response("empty body\n", 400);
-    }
-
-    const fileInfo = sniffImageType(new Uint8Array(body));
-    if (!fileInfo) {
-      return response("unsupported file type\n", 400);
-    }
-
-    const fileName = `${generateRequestId()}.${fileInfo.ext}`;
-    const pathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX);
-    const key = pathPrefix ? `${pathPrefix}/${fileName}` : fileName;
-
-    await env.IMAGES.put(key, body, {
-      httpMetadata: {
-        contentType: fileInfo.contentType,
-      },
-    });
-
-    return response(`${normalizeBaseUrl(env.PUBLIC_BASE_URL)}/${key}\n`);
+    return notFound();
   },
 };
