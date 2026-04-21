@@ -42,6 +42,7 @@ Edit [`wrangler.jsonc`](./wrangler.jsonc):
 - Change `vars.API_PATH_PREFIX` if you want the upload endpoint on another path such as `api/upload`. Use an empty value to serve uploads from `/`.
 - Change `r2_buckets[0].bucket_name` to your real bucket name.
 - Leave `vars.PUBLIC_BASE_URL` empty to use the Worker origin, or set it later to a custom public image domain.
+- Leave `vars.PUBLIC_PATH_PREFIX` empty by default, or set it to a value like `images` if you want objects stored and served under a subdirectory.
 - Change `vars.BASIC_USER` if you do not want `user`.
 
 Set the password as a secret:
@@ -85,15 +86,21 @@ curl -s -u user:password --data-binary @photo.jpg https://your-worker.your-subdo
 The response will be a plain text URL like:
 
 ```text
-https://your-worker.your-subdomain.workers.dev/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
+https://your-worker.your-subdomain.workers.dev/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
 ```
 
-The `images` segment comes from `PUBLIC_PATH_PREFIX` in [`wrangler.jsonc`](./wrangler.jsonc). By default the Worker serves those objects back from the same origin. If you later set `PUBLIC_BASE_URL`, returned URLs will use that custom base instead.
+By default `PUBLIC_PATH_PREFIX` is empty, so the Worker stores objects at the bucket root and serves them back from the same origin. If you set `PUBLIC_PATH_PREFIX=images`, returned URLs become `/images/<file>` and objects are stored under that key prefix. If you later set `PUBLIC_BASE_URL`, returned URLs will use that custom base instead.
+
+If you use both `PUBLIC_BASE_URL` and `PUBLIC_PATH_PREFIX`, do not repeat the same path segment in both. For example:
+
+- `PUBLIC_BASE_URL=https://img.example.com` and `PUBLIC_PATH_PREFIX=images` gives `https://img.example.com/images/<file>`
+- `PUBLIC_BASE_URL=https://img.example.com/images` and `PUBLIC_PATH_PREFIX=` also gives `https://img.example.com/images/<file>`
+- `PUBLIC_BASE_URL=https://img.example.com/images` and `PUBLIC_PATH_PREFIX=images` would incorrectly produce `/images/images/<file>`
 
 ## Optional Delivery Optimization
 
 If you want Cloudflare to optimize on delivery, use a transformed URL when embedding:
 
 ```text
-https://www.example.com/cdn-cgi/image/format=auto,quality=85,width=1600/https://your-worker.your-subdomain.workers.dev/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
+https://www.example.com/cdn-cgi/image/format=auto,quality=85,width=1600/https://your-worker.your-subdomain.workers.dev/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
 ```

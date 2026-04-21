@@ -21,7 +21,7 @@
         "description": "Optional public base URL used in returned image URLs. Leave empty to use the Worker origin by default, or set a custom domain later."
       },
       "PUBLIC_PATH_PREFIX": {
-        "description": "Object key prefix included in returned URLs. Default is `images`."
+        "description": "Optional object key prefix included in stored object keys and returned URLs. Leave empty by default, or set values like `images` if you want a subdirectory."
       }
     }
   },
