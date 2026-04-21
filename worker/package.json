@@ -19,6 +19,9 @@
       },
       "PUBLIC_BASE_URL": {
         "description": "Optional public base URL used in returned image URLs. Leave empty to use the Worker origin by default, or set a custom domain later."
+      },
+      "PUBLIC_PATH_PREFIX": {
+        "description": "Object key prefix used for stored files and returned URLs. Default is `images`, but you can change it to values like `abc`."
       }
     }
   },
