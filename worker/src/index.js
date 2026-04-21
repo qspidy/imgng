@@ -137,19 +137,6 @@ function resolvePublicBaseUrl(requestUrl, env) {
   return normalizeBaseUrl(requestUrl.origin);
 }
 
-function getPublicObjectKey(pathname, publicPathPrefix) {
-  if (!publicPathPrefix) {
-    return pathname.replace(/^\/+/, "");
-  }
-
-  const prefixPath = `/${publicPathPrefix}/`;
-  if (!pathname.startsWith(prefixPath)) {
-    return null;
-  }
-
-  return pathname.slice(prefixPath.length);
-}
-
 function generateRequestId() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -159,7 +146,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const requestPath = normalizeRequestPath(env.API_PATH_PREFIX);
-    const publicPathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX || "");
+    const publicPathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX || "images");
 
     if (url.pathname === requestPath) {
       if (request.method !== "POST") {
@@ -191,29 +178,6 @@ export default {
       });
 
       return response(`${resolvePublicBaseUrl(url, env)}/${key}\n`);
-    }
-
-    const objectKey = getPublicObjectKey(url.pathname, publicPathPrefix);
-    if (objectKey) {
-      if (request.method !== "GET" && request.method !== "HEAD") {
-        return response("method not allowed\n", 405);
-      }
-
-      const object = await env.IMAGES.get(objectKey);
-      if (!object) {
-        return notFound();
-      }
-
-      const headers = new Headers();
-      object.writeHttpMetadata(headers);
-      headers.set("etag", object.httpEtag);
-      headers.set("Cache-Control", "public, max-age=31536000, immutable");
-
-      if (request.method === "HEAD") {
-        return new Response(null, { headers });
-      }
-
-      return new Response(object.body, { headers });
     }
 
     return notFound();

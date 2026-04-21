@@ -16,7 +16,7 @@ imgul() {
 }
 ```
 
-It accepts raw image bytes over `POST`, validates HTTP Basic auth, detects the image type from magic bytes, stores the file in Cloudflare R2, serves uploaded files back from the same Worker, and returns the public image URL.
+It accepts raw image bytes over `POST`, validates HTTP Basic auth, detects the image type from magic bytes, stores the file in Cloudflare R2, and returns the final public image URL.
 
 The repo now uses plain JavaScript for the deployable Worker entrypoint, so it is suitable for Cloudflare Git-connected builds without a TypeScript step.
 
@@ -32,8 +32,10 @@ The repo now uses plain JavaScript for the deployable Worker entrypoint, so it i
 
 1. Create an R2 bucket, for example `images`, unless Cloudflare provisions one for you during template deployment.
 2. Deploy to the default `workers.dev` hostname first so the template works without any per-user route setup.
-3. Leave `PUBLIC_BASE_URL` empty if you want returned URLs to use the Worker origin by default.
-4. Add a custom domain later if you want public image URLs on your own domain.
+3. Choose a public bucket domain:
+   - use a custom domain such as `https://img.example.com`, or
+   - use the bucket's Cloudflare-managed public `r2.dev` domain
+4. Set `PUBLIC_BASE_URL` to that bucket domain so the Worker returns public delivery URLs instead of Worker URLs.
 
 ## Local Config
 
@@ -41,9 +43,12 @@ Edit [`wrangler.jsonc`](./wrangler.jsonc):
 
 - Change `vars.API_PATH_PREFIX` if you want the upload endpoint on another path such as `api/upload`. Use an empty value to serve uploads from `/`.
 - Change `r2_buckets[0].bucket_name` to your real bucket name.
-- Leave `vars.PUBLIC_BASE_URL` empty to use the Worker origin, or set it later to a custom public image domain.
-- Leave `vars.PUBLIC_PATH_PREFIX` empty by default, or set it to a value like `images` if you want objects stored and served under a subdirectory.
+- Set `vars.PUBLIC_BASE_URL` to your public bucket domain:
+  - custom domain example: `https://img.example.com`
+  - Cloudflare-managed domain example: `https://pub-xxxxxxxxxxxxxxxx.r2.dev`
 - Change `vars.BASIC_USER` if you do not want `user`.
+
+The object key prefix is configurable through the optional Worker variable `PUBLIC_PATH_PREFIX`. If you do not set it, the Worker defaults to `images`, so uploaded objects are stored as `images/<file>` and returned URLs use `/images/<file>`.
 
 Set the password as a secret:
 
@@ -73,7 +78,7 @@ If you want Cloudflare to deploy from Git automatically:
 6. Use the install command `npm install`.
 7. Use the deploy command `npm run deploy`.
 8. Set the `BASIC_PASS` secret if Cloudflare did not already prompt for it during deployment.
-9. Review the generated configuration and make sure the upload path and bucket name in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup. Set `PUBLIC_BASE_URL` later if you want a separate image domain.
+9. Review the generated configuration and make sure the upload path, bucket name, and `PUBLIC_BASE_URL` in [`wrangler.jsonc`](./wrangler.jsonc) match your real setup.
 
 Cloudflare requires the Worker name in the dashboard to match the `name` field in [`wrangler.jsonc`](./wrangler.jsonc). Custom routes are optional and can be added after the first successful deploy.
 
@@ -86,10 +91,15 @@ curl -s -u user:password --data-binary @photo.jpg https://your-worker.your-subdo
 The response will be a plain text URL like:
 
 ```text
-https://your-worker.your-subdomain.workers.dev/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
+https://img.example.com/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
 ```
 
-By default `PUBLIC_PATH_PREFIX` is empty, so the Worker stores objects at the bucket root and serves them back from the same origin. If you set `PUBLIC_PATH_PREFIX=images`, returned URLs become `/images/<file>` and objects are stored under that key prefix. If you later set `PUBLIC_BASE_URL`, returned URLs will use that custom base instead.
+By default `PUBLIC_PATH_PREFIX` behaves as `images`, so the Worker stores objects under the `images/` key prefix and returns URLs ending in `/images/<file>`. If you change `PUBLIC_PATH_PREFIX`, both the R2 object key and the returned public URL change with it.
+
+`PUBLIC_BASE_URL` should point to a public bucket domain, not the Worker domain. Both of these are valid:
+
+- `https://img.example.com`
+- `https://pub-xxxxxxxxxxxxxxxx.r2.dev`
 
 If you use both `PUBLIC_BASE_URL` and `PUBLIC_PATH_PREFIX`, do not repeat the same path segment in both. For example:
 
@@ -102,5 +112,5 @@ If you use both `PUBLIC_BASE_URL` and `PUBLIC_PATH_PREFIX`, do not repeat the sa
 If you want Cloudflare to optimize on delivery, use a transformed URL when embedding:
 
 ```text
-https://www.example.com/cdn-cgi/image/format=auto,quality=85,width=1600/https://your-worker.your-subdomain.workers.dev/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
+https://www.example.com/cdn-cgi/image/format=auto,quality=85,width=1600/https://img.example.com/images/4e9d6f19c7c84f4b8f0d9d4d6a0a7f2c.jpg
 ```
