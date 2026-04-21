@@ -159,7 +159,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const requestPath = normalizeRequestPath(env.API_PATH_PREFIX);
-    const publicPathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX);
+    const publicPathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX || "");
 
     if (url.pathname === requestPath) {
       if (request.method !== "POST") {
