@@ -4,7 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-Ready-blue)](https://www.docker.com/)
 
-Simple authenticated image uploads that return a direct public URL.
+CLI-first image host for hackers, with nginx/OpenResty and optional Cloudflare R2 uploads.
+
+A simple `curl` upload command in, a public image URL out.
 
 Two modes:
 
