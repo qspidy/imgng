@@ -13,5 +13,5 @@ services:
       - UPLOAD_PASS=${UPLOAD_PASS:-upload}
     volumes:
       - ./images:${STORAGE_PATH:-/var/www/images}
-      - ./certs:/etc/ssl:ro
+      - ./certs:/etc/nginx/certs:ro
     restart: unless-stopped
