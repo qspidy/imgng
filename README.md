@@ -1,4 +1,4 @@
-# nginx-image-host
+# imgul
 
 [![nginx](https://img.shields.io/badge/nginx-OpenResty%2FLua-green)](https://openresty.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
