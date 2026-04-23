@@ -122,6 +122,13 @@ Behavior:
 - for R2 deployments, prefer a custom domain for stable, branded image URLs
 - direct R2 custom-domain delivery does not block other sites from embedding images
 
+## TODO
+
+- [ ] multi-user upload accounts
+- [ ] helper bash script for upload setup
+- [ ] image list page or CLI listing endpoint
+- [ ] backup and restore guide
+
 ## Docs
 
 - [INSTALL.md](INSTALL.md): existing nginx setup
