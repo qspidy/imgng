@@ -4,7 +4,11 @@ Use this if you want uploads handled by Cloudflare and files stored in R2.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qspidy/imgng/tree/master/worker)
 
+Use the button above for one-click deploy.
+
 ## Quick Start
+
+Manual deploy:
 
 ```bash
 cd worker
@@ -27,6 +31,10 @@ Edit [`wrangler.jsonc`](./wrangler.jsonc):
 - `PUBLIC_PATH_PREFIX`: object key prefix, usually `images`
 - `r2_buckets[0].bucket_name`: your R2 bucket name
 
+For public use, prefer a custom domain for R2. It gives you stable, branded URLs, avoids exposing an `r2.dev` hostname, and lets you change storage or routing later without changing old image links.
+
+Direct R2 custom-domain delivery does not block other sites from embedding images. If you need that control, serve images through a Worker delivery layer that checks the `Referer` header instead of exposing the bucket directly.
+
 ## Upload API
 
 ```bash
@@ -41,5 +49,5 @@ Notes:
 - accepts `jpg`, `png`, `gif`, `webp`, and `avif`
 - rejects unsupported types
 
-- set `PUBLIC_BASE_URL` if you want returned URLs to use your public bucket domain
+- set `PUBLIC_BASE_URL` to your custom R2 domain so returned URLs use that domain
 - avoid duplicating the path between `PUBLIC_BASE_URL` and `PUBLIC_PATH_PREFIX`

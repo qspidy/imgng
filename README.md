@@ -29,7 +29,18 @@ Use Worker + R2 if you want:
 
 - Cloudflare edge uploads
 - object storage
-- public bucket URLs
+- public URLs from your own domain
+
+## Compare Modes
+
+| Feature | Self-hosted nginx | Worker + R2 |
+|---------|-------------------|-------------|
+| Storage | Local disk | Cloudflare R2 |
+| Upload endpoint | Your server | Cloudflare Worker |
+| Delivery domain | Your nginx domain | Custom R2 domain recommended |
+| Server to maintain | Yes | No image storage server |
+| Blocks other sites from embedding images | Yes, via nginx `Referer` checks | No with direct bucket custom-domain delivery; use a Worker delivery layer if you need this |
+| Best for | Full control and simple self-hosting | Edge uploads and object storage |
 
 ## Quick Start
 
@@ -75,6 +86,10 @@ curl -u upload:upload --data-binary @photo.jpg https://yourdomain.com/upload
 
 ### Worker + R2
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qspidy/imgng/tree/master/worker)
+
+Use the button above for one-click deploy, or deploy manually:
+
 ```bash
 cd worker
 npm install
@@ -104,6 +119,8 @@ Behavior:
 - uploaded image URLs are public once known
 - hotlink protection uses the `Referer` header and is not strong authorization
 - Docker exposes the app on host ports `8080` and `8443`
+- for R2 deployments, prefer a custom domain for stable, branded image URLs
+- direct R2 custom-domain delivery does not block other sites from embedding images
 
 ## Docs
 
