@@ -103,7 +103,44 @@ Full setup is in [worker/README.md](worker/README.md).
 ## Upload API
 
 ```bash
-curl -u upload:upload --data-binary @photo.jpg https://example.com/upload
+curl -u user:pass --data-binary @photo.jpg https://example.com/upload
+```
+
+Optional shell function:
+
+```bash
+imgng() {
+  curl -s -u user:pass --data-binary @"$1" https://example.com/upload
+}
+
+imgng photo.jpg
+```
+
+Replace `user:pass` and `https://example.com/upload` with your own upload credentials and endpoint.
+
+Add it to your shell config to keep it:
+
+```bash
+# zsh
+cat >> ~/.zshrc <<'EOF'
+imgng() {
+  curl -s -u user:pass --data-binary @"$1" https://example.com/upload
+}
+EOF
+
+# bash
+cat >> ~/.bashrc <<'EOF'
+imgng() {
+  curl -s -u user:pass --data-binary @"$1" https://example.com/upload
+}
+EOF
+
+# fish
+cat >> ~/.config/fish/config.fish <<'EOF'
+function imgng
+  curl -s -u user:pass --data-binary @$argv[1] https://example.com/upload
+end
+EOF
 ```
 
 Behavior:
