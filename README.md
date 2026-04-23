@@ -1,4 +1,4 @@
-# imgul
+# imgng
 
 [![nginx](https://img.shields.io/badge/nginx-OpenResty%2FLua-green)](https://openresty.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -7,6 +7,8 @@
 CLI-first image host for hackers, with nginx/OpenResty and optional Cloudflare R2 uploads.
 
 A simple `curl` upload command in, a public image URL out.
+
+No app, no GUI, no custom client. Just `curl`.
 
 Two modes:
 
