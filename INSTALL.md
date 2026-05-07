@@ -51,11 +51,12 @@ include /etc/nginx/snippets/img-host.conf;
 ```bash
 sudo nginx -t
 sudo nginx -s reload
-curl -u upload:upload --data-binary @photo.jpg https://yourdomain.com/upload
+curl -u upload:upload -T photo.jpg https://yourdomain.com/upload
 ```
 
 ## Notes
 
+- uploads accept `PUT` via `curl -T` and `POST` via `--data-binary`
 - uploads use raw request bytes, not multipart form data
 - accepted formats: `jpg`, `jpeg`, `png`, `webp`, `gif`, `avif`
 - unsupported types return `415`

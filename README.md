@@ -48,7 +48,7 @@ Use Worker + R2 if you want:
 
 ```bash
 docker-compose up -d
-curl -k -u upload:upload --data-binary @photo.jpg https://localhost:8443/upload
+curl -k -u upload:upload -T photo.jpg https://localhost:8443/upload
 ```
 
 The response is a plain text URL.
@@ -81,7 +81,7 @@ echo "upload:$(openssl passwd -apr1 upload)" | sudo tee /etc/nginx/.htpasswd
 Then follow [INSTALL.md](INSTALL.md) and test:
 
 ```bash
-curl -u upload:upload --data-binary @photo.jpg https://yourdomain.com/upload
+curl -u upload:upload -T photo.jpg https://yourdomain.com/upload
 ```
 
 ### Worker + R2
@@ -95,7 +95,7 @@ cd worker
 npm install
 npx wrangler secret put BASIC_PASS
 npx wrangler deploy
-curl -u user:password --data-binary @photo.jpg https://your-worker.your-subdomain.workers.dev/upload
+curl -u user:password -T photo.jpg https://your-worker.your-subdomain.workers.dev/upload
 ```
 
 Full setup is in [worker/README.md](worker/README.md).
@@ -103,14 +103,14 @@ Full setup is in [worker/README.md](worker/README.md).
 ## Upload API
 
 ```bash
-curl -u user:pass --data-binary @photo.jpg https://example.com/upload
+curl -u user:pass -T photo.jpg https://example.com/upload
 ```
 
 Optional shell function:
 
 ```bash
 imgng() {
-  curl -s -u user:pass --data-binary @"$1" https://example.com/upload
+  curl -s -u user:pass -T "$1" https://example.com/upload
 }
 
 imgng photo.jpg
@@ -124,27 +124,28 @@ Add it to your shell config to keep it:
 # zsh
 cat >> ~/.zshrc <<'EOF'
 imgng() {
-  curl -s -u user:pass --data-binary @"$1" https://example.com/upload
+  curl -s -u user:pass -T "$1" https://example.com/upload
 }
 EOF
 
 # bash
 cat >> ~/.bashrc <<'EOF'
 imgng() {
-  curl -s -u user:pass --data-binary @"$1" https://example.com/upload
+  curl -s -u user:pass -T "$1" https://example.com/upload
 }
 EOF
 
 # fish
 cat >> ~/.config/fish/config.fish <<'EOF'
 function imgng
-  curl -s -u user:pass --data-binary @$argv[1] https://example.com/upload
+  curl -s -u user:pass -T $argv[1] https://example.com/upload
 end
 EOF
 ```
 
 Behavior:
 
+- accepts `PUT` via `curl -T` and `POST` via `--data-binary`
 - raw request body, not multipart form data
 - HTTP Basic auth
 - returns the final URL as plain text

@@ -15,7 +15,7 @@ cd worker
 npm install
 npx wrangler secret put BASIC_PASS
 npx wrangler deploy
-curl -u user:password --data-binary @photo.jpg https://your-worker.your-subdomain.workers.dev/upload
+curl -u user:password -T photo.jpg https://your-worker.your-subdomain.workers.dev/upload
 ```
 
 The response is a plain text URL.
@@ -38,11 +38,12 @@ Direct R2 custom-domain delivery does not block other sites from embedding image
 ## Upload API
 
 ```bash
-curl -u user:password --data-binary @photo.jpg https://your-worker.your-subdomain.workers.dev/upload
+curl -u user:password -T photo.jpg https://your-worker.your-subdomain.workers.dev/upload
 ```
 
 Notes:
 
+- accepts `PUT` via `curl -T` and `POST` via `--data-binary`
 - raw request body
 - HTTP Basic auth
 - returns the final URL as plain text

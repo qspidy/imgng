@@ -149,7 +149,7 @@ export default {
     const publicPathPrefix = normalizePathPrefix(env.PUBLIC_PATH_PREFIX || "images");
 
     if (url.pathname === requestPath) {
-      if (request.method !== "POST") {
+      if (request.method !== "POST" && request.method !== "PUT") {
         return response("method not allowed\n", 405);
       }
 

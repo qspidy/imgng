@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Top-level README now documents the optional Cloudflare Worker + R2 architecture
 - Worker examples and config placeholders were sanitized for public release
+- Upload endpoints now accept `PUT` for `curl -T` style uploads while keeping server-generated filenames
 
 ## [1.0.0] - 2025-01-31
 
